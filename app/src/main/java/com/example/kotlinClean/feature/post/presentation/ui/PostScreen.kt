@@ -37,8 +37,9 @@ import com.example.kotlinClean.ui.theme.KotlinTheme
 
 @Composable
 fun PostRoute(
+    padding: PaddingValues,
     viewModel: PostViewModel = hiltViewModel(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+    scnackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -46,18 +47,19 @@ fun PostRoute(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is PostEffect.ShowSnackbar ->
-                    snackbarHostState.showSnackbar(effect.message)
+                    scnackbarHostState.showSnackbar(effect.message)
             }
         }
     }
 
-    PostScreen(state = state, onIntent = viewModel::onIntent)
+    PostScreen(state = state, onIntent = viewModel::onIntent, padding)
 }
 
 @Composable
 fun PostScreen(
     state: PostUiState,
-    onIntent: (PostIntent) -> Unit
+    onIntent: (PostIntent) -> Unit,
+    padding: PaddingValues
 ) {
     when (state) {
         PostUiState.Idle -> Unit
@@ -69,24 +71,26 @@ fun PostScreen(
         }
 
         is PostUiState.Error -> {
-            Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Error: ${state.message}")
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = { onIntent(PostIntent.Retry) }) {
-                    Text("Retry")
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    Modifier.fillMaxSize().padding(15.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Error: ${state.message}")
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = { onIntent(PostIntent.Retry) }) {
+                        Text("Retry")
+                    }
                 }
             }
         }
 
         is PostUiState.Success -> {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxSize().padding(15.dp),
+                contentPadding = padding,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(state.posts, key = { it.id }) { post ->
                     PostItem(post)
